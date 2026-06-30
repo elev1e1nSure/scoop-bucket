@@ -1,0 +1,50 @@
+name: update
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync sieve manifest with the latest release
+        run: |
+          set -euo pipefail
+
+          release=$(curl -sf -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/elev1e1nSure/sieve/releases/latest)
+
+          tag=$(jq -r '.tag_name' <<<"$release")
+          version=${tag#v}
+          url=$(jq -r '.assets[] | select(.name == "sieve-windows-amd64.exe") | .browser_download_url' <<<"$release")
+          digest=$(jq -r '.assets[] | select(.name == "sieve-windows-amd64.exe") | .digest' <<<"$release")
+          hash=${digest#sha256:}
+
+          if [ -z "$url" ] || [ -z "$hash" ] || [ "$hash" = "null" ]; then
+            echo "latest release has no sieve-windows-amd64.exe asset yet, skipping"
+            exit 0
+          fi
+
+          current=$(jq -r '.version' bucket/sieve.json)
+          if [ "$current" = "$version" ]; then
+            echo "manifest already at $version, nothing to do"
+            exit 0
+          fi
+
+          jq --arg version "$version" --arg url "$url" --arg hash "$hash" \
+            '.version = $version | .architecture["64bit"].url = $url | .architecture["64bit"].hash = $hash' \
+            bucket/sieve.json > bucket/sieve.json.tmp
+          mv bucket/sieve.json.tmp bucket/sieve.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bucket/sieve.json
+          git commit -m "chore: bump sieve to $tag"
+          git push

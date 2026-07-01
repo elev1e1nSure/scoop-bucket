@@ -1,12 +1,12 @@
 {
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Sifts through configs until something works.",
   "homepage": "https://github.com/elev1e1nSure/sieve",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/elev1e1nSure/sieve/releases/download/v0.3.4/sieve-windows-amd64.exe",
-      "hash": "217709e3db39fcccb14cb1fc1d5fcc9a0c72176ad94ca72c376565308798de7d",
+      "url": "https://github.com/elev1e1nSure/sieve/releases/download/v0.4.0/sieve-windows-amd64.exe",
+      "hash": "9b5b522316577fabf20248e0b21e7bc667e9179d23f645475a66bba22e1c3213",
       "bin": [
         [
           "sieve-windows-amd64.exe",
